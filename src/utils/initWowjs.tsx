@@ -1,89 +1,74 @@
-"use client";
-import "wowjs/dist/wow.min.js";
+export async function initWow(): Promise<void> {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
 
-export function init_wow(): void {
+  const WOWLib = await import("wowjs");
+  const WOW = WOWLib.WOW;
+
   setTimeout(() => {
-    if (typeof window === "undefined" || !window.WOW) {
-      console.warn(
-        "WOW.js not available in this environment (likely SSR) or not loaded."
-      );
-      return;
+    const isAnimate = document.body.classList.contains("appear-animate");
+
+    if (isAnimate) {
+      document.querySelectorAll<HTMLElement>(".wow").forEach((el) => {
+        el.classList.add("no-animate");
+      });
     }
 
-    const WOWConstructor = window.WOW;
-
-    /* Wow init */
-    if (document.body.classList.contains("appear-animate")) {
-      document
-        .querySelectorAll(".wow")
-        .forEach((el) => el.classList.add("no-animate"));
-    }
-
-    const wow = new WOWConstructor({
+    const wow = new WOW({
       boxClass: "wow",
       animateClass: "animatedfgfg",
       offset: 100,
       live: false,
-      callback: function (box: HTMLElement) {
+      callback: (box: HTMLElement) => {
         box.classList.add("animated");
       },
     });
 
-    if (document.body.classList.contains("appear-animate")) {
+    if (isAnimate) {
       wow.init();
     } else {
-      document.querySelectorAll(".wow").forEach((el) => {
-        if (el instanceof HTMLElement) {
-          el.style.opacity = "1";
-        }
+      document.querySelectorAll<HTMLElement>(".wow").forEach((el) => {
+        el.style.opacity = "1";
       });
     }
 
-    /* Wow for portfolio init */
-    if (document.body.classList.contains("appear-animate")) {
-      document
-        .querySelectorAll(".wow-p")
-        .forEach((el) => el.classList.add("no-animate"));
+    if (isAnimate) {
+      document.querySelectorAll<HTMLElement>(".wow-p").forEach((el) => {
+        el.classList.add("no-animate");
+      });
     }
-    const wow_p = new WOWConstructor({
+
+    const wowP = new WOW({
       boxClass: "wow-p",
       animateClass: "animatedfgfg",
       offset: 100,
       live: false,
-      callback: function (box: HTMLElement) {
+      callback: (box: HTMLElement) => {
         box.classList.add("animated");
       },
     });
 
-    if (document.body.classList.contains("appear-animate")) {
-      wow_p.init();
+    if (isAnimate) {
+      wowP.init();
     } else {
-      document.querySelectorAll(".wow-p").forEach((el) => {
-        if (el instanceof HTMLElement) {
-          el.style.opacity = "1";
-        }
+      document.querySelectorAll<HTMLElement>(".wow-p").forEach((el) => {
+        el.style.opacity = "1";
       });
     }
 
-    /* Wow for menu bar init */
     if (
-      document.body.classList.contains("appear-animate") &&
+      isAnimate &&
       window.innerWidth >= 1024 &&
       document.documentElement.classList.contains("no-mobile")
     ) {
-      document.querySelectorAll(".wow-menubar").forEach((el) => {
-        if (el instanceof HTMLElement) {
-          el.classList.add("no-animate", "fadeInDown", "animated");
-          setTimeout(() => {
-            el.classList.remove("no-animate");
-          }, 1500);
-        }
+      document.querySelectorAll<HTMLElement>(".wow-menubar").forEach((el) => {
+        el.classList.add("no-animate", "fadeInDown", "animated");
+        setInterval(() => {
+          el.classList.remove("no-animate");
+        }, 1500);
       });
     } else {
-      document.querySelectorAll(".wow-menubar").forEach((el) => {
-        if (el instanceof HTMLElement) {
-          el.style.opacity = "1";
-        }
+      document.querySelectorAll<HTMLElement>(".wow-menubar").forEach((el) => {
+        el.style.opacity = "1";
       });
     }
   }, 400);
