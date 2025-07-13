@@ -250,6 +250,7 @@ export interface SubMenuItemGroup {
 
 export interface MenuItem {
   title: string;
+  link?: MenuItemLink;
   subMenu?: SubMenuItemGroup[];
   subItems?: SubMenuItemGroup[];
 }
@@ -257,49 +258,10 @@ export interface MenuItem {
 export const menuItems: MenuItem[] = [
   {
     title: "Home",
-    subMenu: [
-      {
-        title: "Multi Page",
-        links: [
-          { href: "/main-multi-page", text: "Main Demo" },
-          { href: "/main-multi-page-typed-text", text: "Typed Text" },
-          { href: "/main-multi-page-image-parallax", text: "Image Parallax" },
-          {
-            href: "/main-multi-page-slider-fullscreen",
-            text: "Slider Fullscreen",
-          },
-          {
-            href: "/main-multi-page-slider-background",
-            text: "Slider Background",
-          },
-          { href: "/main-multi-page-bg-video", text: "BG Video HTML5" },
-          {
-            href: "/main-multi-page-bg-video-youtube",
-            text: "BG Video Youtube",
-          },
-          { href: "/main-multi-page-dark", text: "Dark Version" },
-        ],
-      },
-      {
-        title: "One Page",
-        links: [
-          { href: "/main-one-page", text: "Main Demo" },
-          { href: "/main-one-page-typed-text", text: "Typed Text" },
-          { href: "/main-one-page-image-parallax", text: "Image Parallax" },
-          {
-            href: "/main-one-page-slider-fullscreen",
-            text: "Slider Fullscreen",
-          },
-          {
-            href: "/main-one-page-slider-background",
-            text: "Slider Background",
-          },
-          { href: "/main-one-page-bg-video", text: "BG Video HTML5" },
-          { href: "/main-one-page-bg-video-youtube", text: "BG Video Youtube" },
-          { href: "/main-one-page-dark", text: "Dark Version" },
-        ],
-      },
-    ],
+  },
+  {
+    title: "Configurator gard",
+    link: { href: "/configurator", label: "2 Columns" },
   },
   {
     title: "Pages",

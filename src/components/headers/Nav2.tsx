@@ -46,54 +46,72 @@ export default function Nav2({ links }: { links: MenuItem[] }) {
 
   return (
     <>
-      {links.slice(0, 3).map((item, index) => (
-        <li className={menuOpen[0] == index ? "js-opened" : ""} key={index}>
-          <a
-            href="#"
-            onClick={() => toggleParent1(index)}
-            className={`mn-has-sub ${
-              item.subMenu?.some((e1) =>
-                e1.links.some(
-                  (e2) => e2.href.split("/")[1] == pathname.split("/")[1]
+      {links.slice(0, 3).map((item, index) => {
+        if (!item.subItems && !item.subMenu && item.link) {
+          return (
+            <li className={menuOpen[0] == index ? "js-opened" : ""} key={index}>
+              <Link
+                className={
+                  pathname.split("/")[1] == item.link.href.split("/")[1]
+                    ? "active"
+                    : ""
+                }
+                href={item.link.href}
+              >
+                {item.title}
+              </Link>
+            </li>
+          );
+        }
+        return (
+          <li className={menuOpen[0] == index ? "js-opened" : ""} key={index}>
+            <a
+              href="#"
+              onClick={() => toggleParent1(index)}
+              className={`mn-has-sub ${
+                item.subMenu?.some((e1) =>
+                  e1.links.some(
+                    (e2) => e2.href.split("/")[1] == pathname.split("/")[1]
+                  )
                 )
-              )
-                ? "active"
-                : ""
-            }`}
-          >
-            {item.title} <i className="mi-chevron-down" />
-          </a>
-          <ul
-            className={`mn-sub mn-has-multi ${
-              menuOpen[0] == index ? "mobile-sub-active" : ""
-            } `}
-          >
-            {item.subMenu?.map((subItem, subIndex) => (
-              <li className="mn-sub-multi" key={subIndex}>
-                {subItem.title && (
-                  <span className="mn-group-title">{subItem.title}</span>
-                )}
-                <ul>
-                  {subItem.links.map((link, linkIndex) => (
-                    <li key={linkIndex}>
-                      <Link
-                        className={
-                          pathname.split("/")[1] == link.href.split("/")[1]
-                            ? "active"
-                            : ""
-                        }
-                        href={link.href}
-                      >
-                        {link.icon && <i className={link.icon} />} {link.text}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
+                  ? "active"
+                  : ""
+              }`}
+            >
+              {item.title} <i className="mi-chevron-down" />
+            </a>
+            <ul
+              className={`mn-sub mn-has-multi ${
+                menuOpen[0] == index ? "mobile-sub-active" : ""
+              } `}
+            >
+              {item.subMenu?.map((subItem, subIndex) => (
+                <li className="mn-sub-multi" key={subIndex}>
+                  {subItem.title && (
+                    <span className="mn-group-title">{subItem.title}</span>
+                  )}
+                  <ul>
+                    {subItem.links.map((link, linkIndex) => (
+                      <li key={linkIndex}>
+                        <Link
+                          className={
+                            pathname.split("/")[1] == link.href.split("/")[1]
+                              ? "active"
+                              : ""
+                          }
+                          href={link.href}
+                        >
+                          {link.icon && <i className={link.icon} />} {link.text}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </li>
+        );
+      })}
       {/* End Item With Sub */}
       {/* Item With Sub */}
       {links.slice(3, 5).map((item, index) => (
