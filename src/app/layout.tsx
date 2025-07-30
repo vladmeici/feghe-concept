@@ -12,32 +12,34 @@ import {
 
 // Import CSS here first, then Bootstrap, then your custom CSS
 // This order helps your custom styles override Bootstrap
-import "../../public/assets/css/bootstrap.min.css"; // Bootstrap first
-import "../../public/assets/css/style.css"; // Your main custom style
-import "../../public/assets/css/vertical-rhythm.min.css";
-import "../../public/assets/css/magnific-popup.css";
-import "../../public/assets/css/owl.carousel.css";
-import "../../public/assets/css/splitting.css";
-import "../../public/assets/css/YTPlayer.css";
-import "../../public/assets/css/demo-main/demo-main.css";
-import "../../public/assets/css/demo-bold/demo-bold.css";
-import "../../public/assets/css/demo-brutalist/demo-brutalist.css";
-import "../../public/assets/css/demo-corporate/demo-corporate.css";
-import "../../public/assets/css/demo-elegant/demo-elegant.css";
-import "../../public/assets/css/demo-fancy/demo-fancy.css";
-import "../../public/assets/css/demo-gradient/demo-gradient.css";
-import "../../public/assets/css/demo-modern/demo-modern.css";
-import "../../public/assets/css/demo-slick/demo-slick.css";
-import "../../public/assets/css/demo-strong/demo-strong.css";
-import "../../public/assets/css/custom.css";
-import "../../public/assets/css/style-responsive.css";
+
+import "../../public/assets/css/globals.css"; // Bootstrap first
+// import "../../public/assets/css/bootstrap.min.css"; // Bootstrap first
+// import "../../public/assets/css/style.css"; // Your main custom style
+// import "../../public/assets/css/vertical-rhythm.min.css";
+// import "../../public/assets/css/magnific-popup.css";
+// import "../../public/assets/css/owl.carousel.css";
+// import "../../public/assets/css/splitting.css";
+// import "../../public/assets/css/YTPlayer.css";
+// import "../../public/assets/css/demo-main/demo-main.css";
+// import "../../public/assets/css/demo-bold/demo-bold.css";
+// import "../../public/assets/css/demo-brutalist/demo-brutalist.css";
+// import "../../public/assets/css/demo-corporate/demo-corporate.css";
+// import "../../public/assets/css/demo-elegant/demo-elegant.css";
+// import "../../public/assets/css/demo-fancy/demo-fancy.css";
+// import "../../public/assets/css/demo-gradient/demo-gradient.css";
+// import "../../public/assets/css/demo-modern/demo-modern.css";
+// import "../../public/assets/css/demo-slick/demo-slick.css";
+// import "../../public/assets/css/demo-strong/demo-strong.css";
+// import "../../public/assets/css/custom.css";
+// import "../../public/assets/css/style-responsive.css";
 
 // Import any other global CSS that doesn't rely on client-side JS
-import "swiper/css"; // Swiper CSS is fine here
-import "swiper/css/effect-fade";
-import "photoswipe/dist/photoswipe.css";
-import "jarallax/dist/jarallax.min.css"; // Jarallax CSS also fine here
-import "tippy.js/dist/tippy.css"; // Tippy CSS too
+// import "swiper/css"; // Swiper CSS is fine here
+// import "swiper/css/effect-fade";
+// import "photoswipe/dist/photoswipe.css";
+// import "jarallax/dist/jarallax.min.css"; // Jarallax CSS also fine here
+// import "tippy.js/dist/tippy.css"; // Tippy CSS too
 
 // Import the client-side wrapper
 import Providers from "@/app/Providers";

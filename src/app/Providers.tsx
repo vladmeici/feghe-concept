@@ -18,6 +18,7 @@ import "tippy.js/dist/tippy.css";
 // Utility imports
 import { parallaxMouseMovement, parallaxScroll } from "@/utils/parallax";
 import { headerChangeOnScroll } from "@/utils/changeHeaderOnScroll";
+import { HeroUIProvider } from "@heroui/react";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -50,5 +51,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <HeroUIProvider>{children}</HeroUIProvider>
+    </>
+  );
 }
