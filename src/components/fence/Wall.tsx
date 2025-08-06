@@ -1,27 +1,28 @@
-import { BlockModel } from "@/data/blocks";
 import { Block } from "./Block";
-import { getLastBlockWidth, metersToColumns } from "@/app/configurator/page";
+import {
+  FenceConfiguration,
+  generatePathDFromElements,
+  getLastBlockWidth,
+  metersToColumns,
+} from "@/app/configurator/page";
 import React from "react";
 
 interface WallProps {
-  blockModel: BlockModel;
-  fenceLength: number;
+  fenceConfiguration: FenceConfiguration;
 }
 
-export const Wall = (wallProps: WallProps) => {
-  const blockModel = wallProps.blockModel;
+export const Wall = (props: WallProps) => {
+  const blockModel = props.fenceConfiguration.models.blockModel;
+  const fenceLenght = props.fenceConfiguration.dimensions.length;
 
   const evenBlocks: React.JSX.Element[] = [];
   const oddBlocks: React.JSX.Element[] = [];
 
   //const upperBlocks = [];
 
-  const rows = 4;
-  const columns = metersToColumns(wallProps.fenceLength, blockModel.width);
-  const lastBlockWidth = getLastBlockWidth(
-    wallProps.fenceLength,
-    blockModel.width
-  );
+  const rows = props.fenceConfiguration.fenceType.key === "fullBlocks" ? 9 : 4;
+  const columns = metersToColumns(fenceLenght, blockModel.width);
+  const lastBlockWidth = getLastBlockWidth(fenceLenght, blockModel.width);
   const startingX = 0;
   const startingY = 0;
   const blockWidth = blockModel.width;
@@ -134,7 +135,11 @@ export const Wall = (wallProps: WallProps) => {
                 }-${startingY - i * blockHeight}`}
                 x={startingX + blockWidth / 2 + (j + 1) * blockWidth}
                 y={startingY - i * blockHeight}
-                width={blockWidth - lastBlockWidth}
+                width={
+                  blockWidth - lastBlockWidth === 0
+                    ? blockWidth / 2
+                    : blockWidth - lastBlockWidth
+                }
                 height={blockHeight}
                 patternImage={modelImage}
               ></Block>
@@ -149,6 +154,8 @@ export const Wall = (wallProps: WallProps) => {
 
   return (
     <>
+      {/* {evenBlocks}
+      {oddBlocks} */}
       <path
         d={evenBlocksD}
         fill="url(#block-pattern-even)"
@@ -161,30 +168,6 @@ export const Wall = (wallProps: WallProps) => {
         stroke="#333"
         strokeWidth="0.5"
       />
-      {/* {blocks} */}
-      {/* {upperBlocks} */}
     </>
   );
 };
-
-function generatePathDFromElements(blockElements: React.JSX.Element[]): string {
-  return blockElements
-    .map((el) => {
-      const { x, y, width, height } = el.props;
-      const r = 2;
-      //return `M${x} ${y}h${width}v${height}h-${width}Z`;
-      return `
-        M${x + r},${y}
-        h${width - 2 * r}
-        a${r},${r} 0 0 1 ${r},${r}
-        v${height - 2 * r}
-        a${r},${r} 0 0 1 -${r},${r}
-        h-${width - 2 * r}
-        a${r},${r} 0 0 1 -${r},-${r}
-        v-${height - 2 * r}
-        a${r},${r} 0 0 1 ${r},-${r}
-        Z
-      `.trim();
-    })
-    .join(" ");
-}

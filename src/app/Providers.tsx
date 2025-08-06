@@ -3,6 +3,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 
 // CSS Imports (ONLY CSS that relies on client-side JS for functionality,
 // though generally, ALL CSS can be imported in the server layout)
@@ -18,7 +19,6 @@ import "tippy.js/dist/tippy.css";
 // Utility imports
 import { parallaxMouseMovement, parallaxScroll } from "@/utils/parallax";
 import { headerChangeOnScroll } from "@/utils/changeHeaderOnScroll";
-import { HeroUIProvider } from "@heroui/react";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -53,7 +53,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <HeroUIProvider>{children}</HeroUIProvider>
+      <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
     </>
   );
 }

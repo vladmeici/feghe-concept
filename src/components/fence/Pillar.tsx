@@ -1,3 +1,4 @@
+import { generatePathDFromElements } from "@/app/configurator/page";
 import { Block } from "./Block";
 
 interface PillarProps {
@@ -6,12 +7,16 @@ interface PillarProps {
   y: number;
   blockWidth: number;
   blockHeight: number;
+  blockModel: string;
+  capModel: string;
 }
 
 export const Pillar = (pillarProps: PillarProps) => {
-  const blockModel = "/assets/gard/rivago/rivago-crem.jpg";
+  const blockModel = pillarProps.blockModel;
+  const capModel = pillarProps.capModel;
 
-  const blocks = [];
+  const evenBlocks: React.JSX.Element[] = [];
+  const oddBlocks: React.JSX.Element[] = [];
 
   const rows = pillarProps.rows;
   const startingX = pillarProps.x;
@@ -19,20 +24,28 @@ export const Pillar = (pillarProps: PillarProps) => {
   const blockWidth = pillarProps.blockWidth;
   const blockHeight = pillarProps.blockHeight;
 
-  const upperBlock = (
+  const capsPillarBlocks = [
     <Block
       key={`upper-block-${startingX}-${startingY}`}
-      x={startingX - 4}
-      y={startingY - 80}
-      width={blockWidth + 8}
+      x={startingX - 3.5}
+      y={startingY - 85}
+      width={23.5}
       height={5}
-      patternImage={blockModel}
-    ></Block>
-  );
+      patternImage={capModel}
+    ></Block>,
+    <Block
+      key={`upper-block-${startingX - 3.5 + 23.5}-${startingY}`}
+      x={startingX - 3.5 + 23.5}
+      y={startingY - 85}
+      width={23.5}
+      height={5}
+      patternImage={capModel}
+    ></Block>,
+  ];
 
   for (let i = 0; i < rows; i++) {
     if (i % 2 === 0) {
-      blocks.push(
+      evenBlocks.push(
         <Block
           key={`block-${startingX}-${startingY - i * blockHeight}`}
           x={startingX}
@@ -43,7 +56,7 @@ export const Pillar = (pillarProps: PillarProps) => {
         ></Block>
       );
     } else {
-      blocks.push(
+      oddBlocks.push(
         <Block
           key={`block-${startingX}-${startingY - i * blockHeight}`}
           x={startingX}
@@ -53,7 +66,7 @@ export const Pillar = (pillarProps: PillarProps) => {
           patternImage={blockModel}
         ></Block>
       );
-      blocks.push(
+      oddBlocks.push(
         <Block
           key={`block-${startingX + blockWidth / 2}-${
             startingY - i * blockHeight
@@ -68,10 +81,30 @@ export const Pillar = (pillarProps: PillarProps) => {
     }
   }
 
+  const evenBlocksD = generatePathDFromElements(evenBlocks);
+  const oddBlocksD = generatePathDFromElements(oddBlocks);
+  const upperBlockD = generatePathDFromElements(capsPillarBlocks, 1, 1);
+
   return (
     <>
-      {blocks}
-      {upperBlock}
+      <path
+        d={evenBlocksD}
+        fill="url(#block-pattern-even)"
+        stroke="#333"
+        strokeWidth="0.5"
+      />
+      <path
+        d={oddBlocksD}
+        fill="url(#block-pattern-odd)"
+        stroke="#333"
+        strokeWidth="0.5"
+      />
+      <path
+        d={upperBlockD}
+        fill="url(#block-pattern-cap)"
+        stroke="#333"
+        strokeWidth="1"
+      />
     </>
   );
 };

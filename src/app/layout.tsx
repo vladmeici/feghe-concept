@@ -13,7 +13,7 @@ import {
 // Import CSS here first, then Bootstrap, then your custom CSS
 // This order helps your custom styles override Bootstrap
 
-import "../../public/assets/css/globals.css"; // Bootstrap first
+import "./globals.css"; // Bootstrap first
 // import "../../public/assets/css/bootstrap.min.css"; // Bootstrap first
 // import "../../public/assets/css/style.css"; // Your main custom style
 // import "../../public/assets/css/vertical-rhythm.min.css";

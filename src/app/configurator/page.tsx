@@ -2,36 +2,63 @@
 import { Pillar } from "@/components/fence/Pillar";
 import { Wall } from "@/components/fence/Wall";
 
-import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
 import { BlockModel, blocks } from "@/data/blocks";
-import { Key, useCallback, useEffect, useRef, useState } from "react";
-import { Button, Slider, Tooltip } from "@heroui/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
+import { Block } from "@/components/fence/Block";
+import FenceConfiguratorStepper from "@/components/common/FenceConfiguratorStepper";
+import { Button } from "@mui/material";
+import ModelStep from "./ModelStep";
+import { FenceType, fenceTypes } from "@/data/fenceTypes";
+
+interface CapInfo {
+  x: number;
+  width: number;
+}
+
+export interface FenceModels {
+  blockModel: BlockModel;
+  capModel: BlockModel;
+}
+
+interface FenceDimensions {
+  length: number;
+  height: number;
+}
+
+export interface FenceConfiguration {
+  fenceType: FenceType;
+  models: FenceModels;
+  dimensions: FenceDimensions;
+}
+
+const defaultFenceConfiguration: FenceConfiguration = {
+  fenceType: fenceTypes[0],
+  models: { blockModel: blocks[0], capModel: blocks[0] },
+  dimensions: { length: 10, height: 2 },
+};
 
 export default function ConfiguratorGard() {
-  const [selectedBlockModel, setSelectedBlockModel] = useState<BlockModel>(
-    blocks[0]
-  );
-  const [fenceLengthInMeters, setFenceLength] = useState<number>(10);
+  const [fenceConfiguration, setFenceConfiguration] =
+    useState<FenceConfiguration>(defaultFenceConfiguration);
+  const [activeStep, setActiveStep] = useState(0);
   const [fenceLengthInputValue, setFenceLengthInputValue] =
     useState<string>("10");
 
-  const onBlockModelSelectionChange = (key: Key | null) => {
-    const selectedBlock = blocks.find((block) => block.key === key);
-    if (selectedBlock) {
-      setSelectedBlockModel(selectedBlock);
-    }
-  };
-
-  const blockWidth = selectedBlockModel.width;
-  const blockHeight = selectedBlockModel.height;
+  const blockWidth = fenceConfiguration.models.blockModel.width;
+  const blockHeight = fenceConfiguration.models.blockModel.height;
 
   //const extentWidth = fenceLengthInMeters * 100 + 200;
-  const extentWidth = 1200;
+  const extentWidth = window.innerWidth;
   const extentHeight = 400;
 
   const fenceViewBox = `0 0 ${extentWidth} ${400}`;
-  //const fenceViewBox = `0 0 1200 400`;
+
+  const pillarsXPositions = [0];
+  const capsInfo: CapInfo[] = [];
+
+  let capsBlocks = [];
+  let capsBlocksD;
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fenceGroupRef = useRef<SVGGElement | null>(null);
@@ -100,7 +127,86 @@ export default function ConfiguratorGard() {
         svgRef.current.style.visibility = "visible";
       }
     }, 500);
-  }, [fenceLengthInMeters]); // eslint-disable-line react-hooks/exhaustive-deps -- fenceLengthInMeters is an indirect dependency via getBBox()
+  }, [fenceConfiguration.dimensions.length]); // eslint-disable-line react-hooks/exhaustive-deps -- fenceLengthInMeters is an indirect dependency via getBBox()
+
+  const generateCapsWhenFullBlock = () => {
+    const fenceLengthInMeters = fenceConfiguration.dimensions.length;
+    const fenceLength = Math.round(fenceLengthInMeters * 100);
+    const capLength = 23.5;
+    const totalCaps = Math.floor(fenceLength / capLength);
+    for (let i = 0; i <= totalCaps; i++) {
+      capsInfo.push({
+        x: -5 + i * capLength,
+        width: capLength,
+      });
+    }
+
+    capsBlocks = capsInfo.map((capInfo) => {
+      return (
+        <Block
+          key={`cap-block-${capInfo.x}`}
+          x={capInfo.x}
+          y={-165}
+          width={capInfo.width}
+          height={5}
+          patternImage={fenceConfiguration.models.blockModel.modelImage}
+        ></Block>
+      );
+    });
+
+    capsBlocksD = generatePathDFromElements(capsBlocks, 0, 0);
+  };
+  const computePillarsXPositions = () => {
+    const fenceLengthInMeters = fenceConfiguration.dimensions.length;
+    const fenceLength = Math.round(fenceLengthInMeters * 100);
+    const intervals = Math.round(fenceLengthInMeters / 2);
+    const lastPillarX = fenceLength - blockWidth;
+    const intervalLength = Math.round(lastPillarX / intervals);
+
+    console.log("fence lenght", fenceLength);
+    console.log("intervals", intervals);
+    console.log("lastPillarX", lastPillarX);
+    console.log("intervalLength", intervalLength);
+    for (let i = intervalLength; i <= lastPillarX; i += intervalLength) {
+      pillarsXPositions.push(i);
+    }
+
+    const capLength = 23.5;
+    pillarsXPositions.forEach((pillarXPosition, index) => {
+      if (index === pillarsXPositions.length - 1) {
+        return;
+      }
+      const capsPerInterval = Math.floor(
+        (intervalLength - blockWidth) / capLength
+      );
+      const lastCapLength = Math.round(
+        (intervalLength - blockWidth) % capLength
+      );
+
+      for (let i = 0; i <= capsPerInterval; i++) {
+        capsInfo.push({
+          x: pillarXPosition + blockWidth + i * capLength,
+          width: i === capsPerInterval ? lastCapLength : capLength,
+        });
+      }
+    });
+
+    capsBlocks = capsInfo.map((capInfo) => {
+      return (
+        <Block
+          key={`cap-block-${capInfo.x}`}
+          x={capInfo.x}
+          y={-65}
+          width={capInfo.width}
+          height={5}
+          patternImage={fenceConfiguration.models.blockModel.modelImage}
+        ></Block>
+      );
+    });
+
+    capsBlocksD = generatePathDFromElements(capsBlocks, 0, 0);
+    //pillarsXPositions.push(lastPillarX);
+  };
 
   useEffect(() => {
     centerFence();
@@ -109,24 +215,45 @@ export default function ConfiguratorGard() {
   const handleFenceLengthChange = (value: number | number[]) => {
     if (isNaN(Number(value)) || Array.isArray(value)) return;
 
-    setFenceLength(value);
+    setFenceConfiguration((prevConfig) => ({
+      ...prevConfig,
+      dimensions: {
+        ...prevConfig.dimensions,
+        length: value,
+      },
+    }));
+
     setFenceLengthInputValue(String(value));
   };
 
+  if (fenceConfiguration.fenceType.key === "fullBlocks") {
+    generateCapsWhenFullBlock();
+  } else {
+    computePillarsXPositions();
+  }
+
   return (
-    <div className="flex-col">
-      <div className="flex w-full p-2 flex-1/4">
-        <Autocomplete
-          className="max-w-xs flex-1/2 m-5"
-          defaultItems={blocks}
-          label="Alege modelul de boltar"
-          variant={"bordered"}
-          onSelectionChange={onBlockModelSelectionChange}
-        >
-          {(item) => (
-            <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
-          )}
-        </Autocomplete>
+    <div className="flex flex-col h-screen justify-around">
+      <div className="flex justify-around items-center w-full p-2">
+        <h2>FEGHE Concept - Configurator gard</h2>
+      </div>
+      <div className="flex justify-around items-center w-full p-2">
+        <FenceConfiguratorStepper
+          currentStep={activeStep}
+          onStepChange={setActiveStep}
+        ></FenceConfiguratorStepper>
+      </div>
+      <div className="flex justify-around items-center w-full p-2">
+        {activeStep === 0 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+        <Button variant="outlined" onClick={centerFence}>
+          Centrare gard
+        </Button>
+        {/* 
         <Slider
           className="max-w-md flex-1/2 m-5"
           maxValue={100}
@@ -198,10 +325,7 @@ export default function ConfiguratorGard() {
           size="lg"
           onChange={handleFenceLengthChange}
           value={fenceLengthInMeters}
-        />
-        <Button color="primary" onPress={centerFence}>
-          Centrare gard
-        </Button>
+        /> */}
       </div>
       <div className="w-full">
         <svg ref={svgRef} viewBox={fenceViewBox} className="invisible">
@@ -216,7 +340,7 @@ export default function ConfiguratorGard() {
               patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
             >
               <image
-                href={selectedBlockModel.modelImage} // The URL of the image.
+                href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
                 x={0}
                 y={0}
                 width={blockWidth} // Image width should match the pattern unit width.
@@ -234,7 +358,7 @@ export default function ConfiguratorGard() {
               patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
             >
               <image
-                href={selectedBlockModel.modelImage} // The URL of the image.
+                href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
                 x={0}
                 y={0}
                 width={blockWidth} // Image width should match the pattern unit width.
@@ -243,47 +367,49 @@ export default function ConfiguratorGard() {
                 preserveAspectRatio="xMidYMid slice"
               />
             </pattern>
+            <pattern
+              id={`block-pattern-cap`} // Unique ID to reference this pattern.
+              x={0}
+              y={0}
+              width={23.5} // The width of a single pattern unit.
+              height={5} // The height of a single pattern unit.
+              patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
+            >
+              <image
+                href={fenceConfiguration.models.capModel.modelImage} // The URL of the image.
+                x={0}
+                y={0}
+                width={23.5} // Image width should match the pattern unit width.
+                height={5} // Image height should match the pattern unit height.
+                // Preserve aspect ratio and slice to fill the area, cropping if necessary.
+                preserveAspectRatio="xMidYMid slice"
+              />
+            </pattern>
           </defs>
           <g className="zoom-content" ref={fenceGroupRef}>
-            <Wall
-              blockModel={selectedBlockModel}
-              fenceLength={fenceLengthInMeters}
-            ></Wall>
-            {/* <Pillar
-              rows={5}
-              blockWidth={blockWidth}
-              blockHeight={blockHeight}
-              x={80}
-              y={240}
-            ></Pillar>
-            <Pillar
-              rows={5}
-              blockWidth={blockWidth}
-              blockHeight={blockHeight}
-              x={280}
-              y={240}
-            ></Pillar>
-            <Pillar
-              rows={5}
-              blockWidth={blockWidth}
-              blockHeight={blockHeight}
-              x={480}
-              y={240}
-            ></Pillar>
-            <Pillar
-              rows={5}
-              blockWidth={blockWidth}
-              blockHeight={blockHeight}
-              x={680}
-              y={240}
-            ></Pillar>
-            <Pillar
-              rows={5}
-              blockWidth={blockWidth}
-              blockHeight={blockHeight}
-              x={880}
-              y={240}
-            ></Pillar> */}
+            <Wall fenceConfiguration={fenceConfiguration}></Wall>
+            {fenceConfiguration.fenceType.key === "withPanels" &&
+              pillarsXPositions.map((pillarX, index) => {
+                return (
+                  <Pillar
+                    key={index}
+                    rows={5}
+                    blockWidth={blockWidth}
+                    blockHeight={blockHeight}
+                    x={pillarX}
+                    y={-80}
+                    blockModel={fenceConfiguration.models.blockModel.modelImage}
+                    capModel={fenceConfiguration.models.capModel.modelImage}
+                  ></Pillar>
+                );
+              })}
+
+            <path
+              d={capsBlocksD}
+              fill="url(#block-pattern-cap)"
+              stroke="#333"
+              strokeWidth="1"
+            />
           </g>
         </svg>
       </div>
@@ -303,4 +429,29 @@ export function getLastBlockWidth(
   oneColumnLenghtInCentimeters: number
 ) {
   return Math.round((meters * 100) % oneColumnLenghtInCentimeters);
+}
+
+export function generatePathDFromElements(
+  blockElements: React.JSX.Element[],
+  rTop: number = 1,
+  rBottom: number = 1
+): string {
+  return blockElements
+    .map((el) => {
+      const { x, y, width, height } = el.props;
+
+      return `
+        M${x + rTop},${y}
+        h${width - 2 * rTop}
+        a${rTop},${rTop} 0 0 1 ${rTop},${rTop}
+        v${height - rTop - rBottom}
+        a${rBottom},${rBottom} 0 0 1 -${rBottom},${rBottom}
+        h-${width - 2 * rBottom}
+        a${rBottom},${rBottom} 0 0 1 -${rBottom},-${rBottom}
+        v-${height - rTop - rBottom}
+        a${rTop},${rTop} 0 0 1 ${rTop},-${rTop}
+        Z
+      `.trim();
+    })
+    .join(" ");
 }

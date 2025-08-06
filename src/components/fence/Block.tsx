@@ -19,8 +19,8 @@ export const Block = (blockProps: BlockProps) => {
         //fill={`url(#${blockProps.blockPattern})`} // Fill the block with the defined pattern.
         //stroke="#333" // Dark gray border for the blocks.
         //strokeWidth="0.5" // Border thickness.
-        rx="3" // Horizontal radius for rounded corners.
-        ry="3" // Vertical radius for rounded corners.
+        rx="0" // Horizontal radius for rounded corners.
+        ry="0" // Vertical radius for rounded corners.
       />
     </>
   );
