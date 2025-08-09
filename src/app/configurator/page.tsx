@@ -11,6 +11,7 @@ import { Button, Divider } from "@mui/material";
 import ModelStep from "./ModelStep";
 import { FenceType, fenceTypes } from "@/data/fenceTypes";
 import { Panel } from "@/components/fence/Panel";
+import DimensionsStep from "./DimensionsStep";
 
 interface CapInfo {
   x: number;
@@ -43,8 +44,6 @@ export default function ConfiguratorGard() {
   const [fenceConfiguration, setFenceConfiguration] =
     useState<FenceConfiguration>(defaultFenceConfiguration);
   const [activeStep, setActiveStep] = useState(0);
-  const [fenceLengthInputValue, setFenceLengthInputValue] =
-    useState<string>("10");
 
   const centeredTransform = useRef<d3.ZoomTransform | null>(null);
   const [isCenterButtonDisabled, setCenterButtonDisabled] = useState(true);
@@ -217,20 +216,6 @@ export default function ConfiguratorGard() {
     centerFence();
   }, [centerFence]); // Dependency on the memoized centerFence
 
-  const handleFenceLengthChange = (value: number | number[]) => {
-    if (isNaN(Number(value)) || Array.isArray(value)) return;
-
-    setFenceConfiguration((prevConfig) => ({
-      ...prevConfig,
-      dimensions: {
-        ...prevConfig.dimensions,
-        length: value,
-      },
-    }));
-
-    setFenceLengthInputValue(String(value));
-  };
-
   if (fenceConfiguration.fenceType.key === "fullBlocks") {
     generateCapsWhenFullBlock();
   } else {
@@ -257,10 +242,10 @@ export default function ConfiguratorGard() {
           ></ModelStep>
         )}
         {activeStep === 1 && (
-          <ModelStep
+          <DimensionsStep
             fenceConfiguration={fenceConfiguration}
             setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
+          ></DimensionsStep>
         )}
         {activeStep === 2 && (
           <ModelStep

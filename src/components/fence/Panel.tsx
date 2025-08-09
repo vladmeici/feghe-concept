@@ -14,7 +14,6 @@ export const Panel = (panelProps: PanelProps) => {
   const color = panelProps.color;
   const pillarWidth = 3;
   const lamelHeight = 10;
-  console.log(height % lamelHeight);
   const totalLamels =
     height % lamelHeight <= 2
       ? Math.floor(height / lamelHeight) - 1
