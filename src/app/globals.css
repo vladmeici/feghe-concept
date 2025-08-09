@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.masked-div {
+  mask-image: linear-gradient(to top, transparent, black 2vw),
+    linear-gradient(to right, transparent, black 2vw),
+    linear-gradient(to bottom, transparent, black 2vw),
+    linear-gradient(to left, transparent, black 2vw);
+
+  mask-composite: intersect;
+}

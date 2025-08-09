@@ -7,9 +7,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { Block } from "@/components/fence/Block";
 import FenceConfiguratorStepper from "@/components/common/FenceConfiguratorStepper";
-import { Button } from "@mui/material";
+import { Button, Divider } from "@mui/material";
 import ModelStep from "./ModelStep";
 import { FenceType, fenceTypes } from "@/data/fenceTypes";
+import { Panel } from "@/components/fence/Panel";
 
 interface CapInfo {
   x: number;
@@ -35,7 +36,7 @@ export interface FenceConfiguration {
 const defaultFenceConfiguration: FenceConfiguration = {
   fenceType: fenceTypes[0],
   models: { blockModel: blocks[0], capModel: blocks[0] },
-  dimensions: { length: 10, height: 2 },
+  dimensions: { length: 8.4, height: 2 },
 };
 
 export default function ConfiguratorGard() {
@@ -44,6 +45,9 @@ export default function ConfiguratorGard() {
   const [activeStep, setActiveStep] = useState(0);
   const [fenceLengthInputValue, setFenceLengthInputValue] =
     useState<string>("10");
+
+  const centeredTransform = useRef<d3.ZoomTransform | null>(null);
+  const [isCenterButtonDisabled, setCenterButtonDisabled] = useState(true);
 
   const blockWidth = fenceConfiguration.models.blockModel.width;
   const blockHeight = fenceConfiguration.models.blockModel.height;
@@ -90,6 +94,10 @@ export default function ConfiguratorGard() {
 
       const transform = event.transform; // Apply the transformation to the 'g' element // Now using both transform.x and transform.y for panning
 
+      console.log("transform", transform);
+      console.log(centeredTransform.current);
+      console.log(transform === centeredTransform.current);
+      setCenterButtonDisabled(transform === centeredTransform.current);
       g.attr(
         "transform",
         `translate(${transform.x}, ${transform.y}) scale(${transform.k})`
@@ -121,6 +129,7 @@ export default function ConfiguratorGard() {
       .scale(scale);
 
     // Apply transform programmatically
+    centeredTransform.current = transform;
     svg.transition().duration(500).call(zoom.transform, transform);
     setTimeout(() => {
       if (svgRef.current) {
@@ -136,7 +145,7 @@ export default function ConfiguratorGard() {
     const totalCaps = Math.floor(fenceLength / capLength);
     for (let i = 0; i <= totalCaps; i++) {
       capsInfo.push({
-        x: -5 + i * capLength,
+        x: -3.5 + i * capLength,
         width: capLength,
       });
     }
@@ -163,10 +172,6 @@ export default function ConfiguratorGard() {
     const lastPillarX = fenceLength - blockWidth;
     const intervalLength = Math.round(lastPillarX / intervals);
 
-    console.log("fence lenght", fenceLength);
-    console.log("intervals", intervals);
-    console.log("lastPillarX", lastPillarX);
-    console.log("intervalLength", intervalLength);
     for (let i = intervalLength; i <= lastPillarX; i += intervalLength) {
       pillarsXPositions.push(i);
     }
@@ -243,6 +248,7 @@ export default function ConfiguratorGard() {
           onStepChange={setActiveStep}
         ></FenceConfiguratorStepper>
       </div>
+      <Divider />
       <div className="flex justify-around items-center w-full p-2">
         {activeStep === 0 && (
           <ModelStep
@@ -250,9 +256,37 @@ export default function ConfiguratorGard() {
             setFenceConfiguration={setFenceConfiguration}
           ></ModelStep>
         )}
-        <Button variant="outlined" onClick={centerFence}>
-          Centrare gard
-        </Button>
+        {activeStep === 1 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+        {activeStep === 2 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+        {activeStep === 3 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+        {activeStep === 4 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+        {activeStep === 5 && (
+          <ModelStep
+            fenceConfiguration={fenceConfiguration}
+            setFenceConfiguration={setFenceConfiguration}
+          ></ModelStep>
+        )}
+
         {/* 
         <Slider
           className="max-w-md flex-1/2 m-5"
@@ -327,7 +361,18 @@ export default function ConfiguratorGard() {
           value={fenceLengthInMeters}
         /> */}
       </div>
-      <div className="w-full">
+      <Divider />
+
+      <div className="flex justify-around items-center w-full p-2">
+        <Button
+          variant="outlined"
+          onClick={centerFence}
+          disabled={isCenterButtonDisabled}
+        >
+          Centrare gard
+        </Button>
+      </div>
+      <div className="w-full masked-div">
         <svg ref={svgRef} viewBox={fenceViewBox} className="invisible">
           <defs>
             {/* Define the pattern to be used for filling the blocks. */}
@@ -386,6 +431,7 @@ export default function ConfiguratorGard() {
               />
             </pattern>
           </defs>
+
           <g className="zoom-content" ref={fenceGroupRef}>
             <Wall fenceConfiguration={fenceConfiguration}></Wall>
             {fenceConfiguration.fenceType.key === "withPanels" &&
@@ -410,6 +456,22 @@ export default function ConfiguratorGard() {
               stroke="#333"
               strokeWidth="1"
             />
+            {fenceConfiguration.fenceType.key === "withPanels" &&
+              pillarsXPositions.map((pillarX, index) => {
+                if (index === pillarsXPositions.length - 1) {
+                  return;
+                }
+                return (
+                  <Panel
+                    key={index}
+                    x={40 + pillarX}
+                    y={-157.5}
+                    width={160}
+                    height={90}
+                    color="#353C40"
+                  ></Panel>
+                );
+              })}
           </g>
         </svg>
       </div>
@@ -451,7 +513,9 @@ export function generatePathDFromElements(
         v-${height - rTop - rBottom}
         a${rTop},${rTop} 0 0 1 ${rTop},-${rTop}
         Z
-      `.trim();
+      `
+        .trim()
+        .replace(/\s+/g, " ");
     })
     .join(" ");
 }

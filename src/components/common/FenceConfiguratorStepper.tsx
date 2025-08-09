@@ -7,7 +7,14 @@ import { IconButton } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
-const steps = ["Model", "Dimensiuni", "Porti", "Oferta"];
+const steps = [
+  "Model",
+  "Dimensiuni",
+  "Porti pietonale",
+  "Porti auto",
+  "Panouri",
+  "Oferta",
+];
 
 interface StepperProps {
   currentStep: number;
@@ -55,7 +62,7 @@ export default function FenceConfiguratorStepper(props: StepperProps) {
               optional?: React.ReactNode;
             } = {};
             return (
-              <Step key={label} {...stepProps}>
+              <Step key={label} {...stepProps} className="select-none">
                 <StepLabel {...labelProps}>{label}</StepLabel>
               </Step>
             );
@@ -63,7 +70,12 @@ export default function FenceConfiguratorStepper(props: StepperProps) {
         </Stepper>
         <Box sx={{ flex: "1 1 auto" }} />
 
-        <IconButton aria-label="forward" onClick={handleNext}>
+        <IconButton
+          color="inherit"
+          aria-label="forward"
+          onClick={handleNext}
+          disabled={props.currentStep === steps.length - 1}
+        >
           <ArrowForwardIcon />
         </IconButton>
       </Box>
