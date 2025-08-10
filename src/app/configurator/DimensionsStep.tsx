@@ -1,4 +1,12 @@
-import { Box, Card, CardContent, Slider, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Input,
+  Slider,
+  Typography,
+} from "@mui/material";
 import { FenceConfiguration } from "./page";
 
 interface DimensionsStepProps {
@@ -39,6 +47,36 @@ export default function DimensionsStep(props: DimensionsStepProps) {
     }));
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    props.setFenceConfiguration((prevConfig) => ({
+      ...prevConfig,
+      dimensions: {
+        ...prevConfig.dimensions,
+        length: event.target.value === "" ? 0 : Number(event.target.value),
+      },
+    }));
+  };
+
+  const handleBlur = () => {
+    if (fenceLength < MIN_LENGTH) {
+      props.setFenceConfiguration((prevConfig) => ({
+        ...prevConfig,
+        dimensions: {
+          ...prevConfig.dimensions,
+          length: MIN_LENGTH,
+        },
+      }));
+    } else if (fenceLength > MAX_LENGTH) {
+      props.setFenceConfiguration((prevConfig) => ({
+        ...prevConfig,
+        dimensions: {
+          ...prevConfig.dimensions,
+          length: MAX_LENGTH,
+        },
+      }));
+    }
+  };
+
   return (
     <>
       <Box sx={{ minWidth: 300 }}>
@@ -48,20 +86,35 @@ export default function DimensionsStep(props: DimensionsStepProps) {
               gutterBottom
               sx={{ color: "text.secondary", fontSize: 14 }}
             >
-              Lungime gard (m) - multiplu de {blockWidth / 100}
+              Lungime gard (metri) - multiplu de {blockWidth / 100}
             </Typography>
-            <Slider
-              step={blockWidth / 100}
-              max={MAX_LENGTH}
-              min={MIN_LENGTH}
-              value={fenceLength}
-              valueLabelDisplay="auto"
-              onChange={handleLengthChange}
-            />
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body2">{MIN_LENGTH} m</Typography>
-              <Typography variant="body2">{MAX_LENGTH} m</Typography>
-            </Box>
+            <Grid container spacing={2} sx={{ alignItems: "center" }}>
+              <Grid size="grow">
+                <Slider
+                  step={blockWidth / 100}
+                  max={MAX_LENGTH}
+                  min={MIN_LENGTH}
+                  value={fenceLength}
+                  valueLabelDisplay="auto"
+                  onChange={handleLengthChange}
+                />
+              </Grid>
+              <Grid>
+                <Input
+                  value={fenceLength}
+                  size="small"
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  inputProps={{
+                    step: blockWidth / 100,
+                    min: MIN_LENGTH,
+                    max: MAX_LENGTH,
+                    type: "number",
+                    "aria-labelledby": "input-slider",
+                  }}
+                />
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       </Box>

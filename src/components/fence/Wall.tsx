@@ -1,103 +1,105 @@
+import React, { useMemo } from "react";
 import { Block } from "./Block";
 import {
   FenceConfiguration,
   generatePathDFromElements,
   metersToColumns,
 } from "@/app/configurator/page";
-import React from "react";
 
 interface WallProps {
   fenceConfiguration: FenceConfiguration;
 }
 
-export const Wall = (props: WallProps) => {
-  const blockModel = props.fenceConfiguration.models.blockModel;
-  const fenceLenght = props.fenceConfiguration.dimensions.length;
+export const Wall = ({ fenceConfiguration }: WallProps) => {
+  const { models, dimensions, fenceType } = fenceConfiguration;
+  const { blockModel } = models;
+  const { length: fenceLength } = dimensions;
 
-  const evenBlocks: React.JSX.Element[] = [];
-  const oddBlocks: React.JSX.Element[] = [];
-
-  const rows = props.fenceConfiguration.fenceType.key === "fullBlocks" ? 9 : 4;
-  const columns = metersToColumns(fenceLenght, blockModel.width);
   const blockWidth = blockModel.width;
   const blockHeight = blockModel.height;
   const modelImage = blockModel.modelImage;
 
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
-      if (i % 2 === 0) {
-        evenBlocks.push(
-          <Block
-            key={`block-${j * blockWidth}-${-i * blockHeight}`}
-            x={j * blockWidth}
-            y={-i * blockHeight}
-            width={blockWidth}
-            height={blockHeight}
-            patternImage={modelImage}
-          ></Block>
-        );
-      } else {
-        if (j === 0) {
-          oddBlocks.push(
+  const rowCount = fenceType.key === "fullBlocks" ? 9 : 4;
+  const columnCount = metersToColumns(fenceLength, blockWidth);
+
+  const wallPathStyle = { stroke: "#333", strokeWidth: 0.5 };
+
+  const { evenBlocksD, oddBlocksD } = useMemo(() => {
+    const evenBlocks: React.JSX.Element[] = [];
+    const oddBlocks: React.JSX.Element[] = [];
+
+    for (let row = 0; row < rowCount; row++) {
+      const isEven = row % 2 === 0;
+
+      if (isEven) {
+        // Full blocks all across
+        for (let col = 0; col < columnCount; col++) {
+          evenBlocks.push(
             <Block
-              key={`block-0-${-i * blockHeight}`}
-              x={0}
-              y={-i * blockHeight}
-              width={blockWidth / 2}
-              height={blockHeight}
-              patternImage={modelImage}
-            ></Block>
-          );
-        } else {
-          oddBlocks.push(
-            <Block
-              key={`block-${blockWidth / 2 + j * blockWidth}-${
-                -i * blockHeight
-              }`}
-              x={blockWidth / 2 + (j - 1) * blockWidth}
-              y={-i * blockHeight}
+              key={`even-${col}-${row}`}
+              x={col * blockWidth}
+              y={-row * blockHeight}
               width={blockWidth}
               height={blockHeight}
               patternImage={modelImage}
-            ></Block>
+            />
           );
         }
+      } else {
+        // First half block
+        oddBlocks.push(
+          <Block
+            key={`odd-half-start-${row}`}
+            x={0}
+            y={-row * blockHeight}
+            width={blockWidth / 2}
+            height={blockHeight}
+            patternImage={modelImage}
+          />
+        );
 
-        if (j === columns - 1) {
+        // Full blocks in between
+        for (let col = 1; col < columnCount; col++) {
           oddBlocks.push(
             <Block
-              key={`block-${j * (blockWidth + blockWidth / 2)}-${
-                -i * blockHeight
-              }`}
-              x={blockWidth / 2 + j * blockWidth}
-              y={-i * blockHeight}
-              width={blockWidth / 2}
+              key={`odd-${col}-${row}`}
+              x={blockWidth / 2 + (col - 1) * blockWidth}
+              y={-row * blockHeight}
+              width={blockWidth}
               height={blockHeight}
               patternImage={modelImage}
-            ></Block>
+            />
           );
         }
+
+        // Last half block
+        oddBlocks.push(
+          <Block
+            key={`odd-half-end-${row}`}
+            x={blockWidth / 2 + (columnCount - 1) * blockWidth}
+            y={-row * blockHeight}
+            width={blockWidth / 2}
+            height={blockHeight}
+            patternImage={modelImage}
+          />
+        );
       }
     }
-  }
 
-  const evenBlocksD = generatePathDFromElements(evenBlocks);
-  const oddBlocksD = generatePathDFromElements(oddBlocks);
+    return {
+      evenBlocksD: generatePathDFromElements(evenBlocks),
+      oddBlocksD: generatePathDFromElements(oddBlocks),
+    };
+  }, [rowCount, columnCount, blockWidth, blockHeight, modelImage]);
 
   return (
     <>
       <path
         d={evenBlocksD}
         fill="url(#block-pattern-even)"
-        stroke="#333"
-        strokeWidth="0.5"
+        {...wallPathStyle}
       />
-      <path
-        d={oddBlocksD}
-        fill="url(#block-pattern-odd)"
-        stroke="#333"
-        strokeWidth="0.5"
-      />
+      <path d={oddBlocksD} fill="url(#block-pattern-odd)" {...wallPathStyle} />
     </>
   );
 };
