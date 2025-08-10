@@ -93,9 +93,6 @@ export default function ConfiguratorGard() {
 
       const transform = event.transform; // Apply the transformation to the 'g' element // Now using both transform.x and transform.y for panning
 
-      console.log("transform", transform);
-      console.log(centeredTransform.current);
-      console.log(transform === centeredTransform.current);
       setCenterButtonDisabled(transform === centeredTransform.current);
       g.attr(
         "transform",

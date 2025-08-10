@@ -19,7 +19,6 @@ export const Panel = (panelProps: PanelProps) => {
       ? Math.floor(height / lamelHeight) - 1
       : Math.floor(height / lamelHeight);
   const spaceHeight = (height - totalLamels * lamelHeight) / (totalLamels - 1);
-  console.log(spaceHeight);
   const lamelAndSpaceHeight = lamelHeight + spaceHeight;
 
   let lamelsD = "";
