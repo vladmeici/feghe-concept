@@ -3,7 +3,7 @@ import { Block } from "./Block";
 import {
   FenceConfiguration,
   generatePathDFromElements,
-  metersToColumns,
+  metersToUnits,
 } from "@/app/configurator/page";
 
 interface WallProps {
@@ -13,14 +13,14 @@ interface WallProps {
 export const Wall = ({ fenceConfiguration }: WallProps) => {
   const { models, dimensions, fenceType } = fenceConfiguration;
   const { blockModel } = models;
-  const { length: fenceLength } = dimensions;
+  const { length: fenceLength, height: fenceHeight, baseHeight } = dimensions;
+  const { width: blockWidth, height: blockHeight, modelImage } = blockModel;
 
-  const blockWidth = blockModel.width;
-  const blockHeight = blockModel.height;
-  const modelImage = blockModel.modelImage;
-
-  const rowCount = fenceType.key === "fullBlocks" ? 9 : 4;
-  const columnCount = metersToColumns(fenceLength, blockWidth);
+  const rowCount =
+    fenceType.key === "fullBlocks"
+      ? metersToUnits(fenceHeight, blockHeight)
+      : metersToUnits(baseHeight!, blockHeight);
+  const columnCount = metersToUnits(fenceLength, blockWidth);
 
   const wallPathStyle = { stroke: "#333", strokeWidth: 0.5 };
 

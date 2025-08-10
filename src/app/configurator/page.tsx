@@ -26,6 +26,7 @@ export interface FenceModels {
 interface FenceDimensions {
   length: number;
   height: number;
+  baseHeight: number;
 }
 
 export interface FenceConfiguration {
@@ -37,7 +38,7 @@ export interface FenceConfiguration {
 const defaultFenceConfiguration: FenceConfiguration = {
   fenceType: fenceTypes[0],
   models: { blockModel: blocks[0], capModel: blocks[0] },
-  dimensions: { length: 8.4, height: 2 },
+  dimensions: { length: 8.4, height: 2, baseHeight: 0.8 },
 };
 
 export default function ConfiguratorGard() {
@@ -48,8 +49,10 @@ export default function ConfiguratorGard() {
   const centeredTransform = useRef<d3.ZoomTransform | null>(null);
   const [isCenterButtonDisabled, setCenterButtonDisabled] = useState(true);
 
-  const blockWidth = fenceConfiguration.models.blockModel.width;
-  const blockHeight = fenceConfiguration.models.blockModel.height;
+  const { models, dimensions } = fenceConfiguration;
+  const { blockModel } = models;
+  const { height: fenceHeight, baseHeight } = dimensions;
+  const { width: blockWidth, height: blockHeight } = blockModel;
 
   //const extentWidth = fenceLengthInMeters * 100 + 200;
   const extentWidth = window.innerWidth;
@@ -113,7 +116,7 @@ export default function ConfiguratorGard() {
       extentHeight / fenceGroupHeight
     );
     //let scale = extentWidth / fenceGroupWidth;
-    scale = scale * 0.95;
+    scale = scale * (fenceConfiguration.dimensions.length > 20 ? 0.95 : 0.9);
 
     // Calculate translate to center content
     const xTranslate = (extentWidth - fenceGroupWidth * scale) / 2;
@@ -164,11 +167,15 @@ export default function ConfiguratorGard() {
   const computePillarsXPositions = () => {
     const fenceLengthInMeters = fenceConfiguration.dimensions.length;
     const fenceLength = Math.round(fenceLengthInMeters * 100);
-    const intervals = Math.round(fenceLengthInMeters / 2);
+    const intervals = Math.floor(fenceLengthInMeters / 2);
     const lastPillarX = fenceLength - blockWidth;
-    const intervalLength = Math.round(lastPillarX / intervals);
+    const intervalLength = lastPillarX / intervals;
 
-    for (let i = intervalLength; i <= lastPillarX; i += intervalLength) {
+    for (
+      let i = intervalLength;
+      Math.floor(i) <= lastPillarX;
+      i += intervalLength
+    ) {
       pillarsXPositions.push(i);
     }
 
@@ -197,7 +204,7 @@ export default function ConfiguratorGard() {
         <Block
           key={`cap-block-${capInfo.x}`}
           x={capInfo.x}
-          y={-65}
+          y={-20 * metersToUnits(baseHeight, blockHeight) + 15}
           width={capInfo.width}
           height={5}
           patternImage={fenceConfiguration.models.blockModel.modelImage}
@@ -418,16 +425,14 @@ export default function ConfiguratorGard() {
             <Wall fenceConfiguration={fenceConfiguration}></Wall>
             {fenceConfiguration.fenceType.key === "withPanels" &&
               pillarsXPositions.map((pillarX, index) => {
+                let pillarHeight = fenceHeight - baseHeight;
+                pillarHeight = Math.round(pillarHeight * 10) / 10;
                 return (
                   <Pillar
                     key={index}
-                    rows={5}
-                    blockWidth={blockWidth}
-                    blockHeight={blockHeight}
+                    rows={metersToUnits(pillarHeight, blockHeight)}
                     x={pillarX}
-                    y={-80}
-                    blockModel={fenceConfiguration.models.blockModel.modelImage}
-                    capModel={fenceConfiguration.models.capModel.modelImage}
+                    fenceConfiguration={fenceConfiguration}
                   ></Pillar>
                 );
               })}
@@ -443,13 +448,31 @@ export default function ConfiguratorGard() {
                 if (index === pillarsXPositions.length - 1) {
                   return;
                 }
+                let pillarHeightInCentimeters =
+                  100 * (fenceHeight - baseHeight);
+                pillarHeightInCentimeters =
+                  Math.round(pillarHeightInCentimeters * 10) / 10;
+
+                let pillarHeight = fenceHeight - baseHeight;
+                pillarHeight = Math.round(pillarHeight * 10) / 10;
+
+                const fenceLengthInMeters =
+                  fenceConfiguration.dimensions.length;
+                const fenceLength = Math.round(fenceLengthInMeters * 100);
+                const intervals = Math.floor(fenceLengthInMeters / 2);
+                const lastPillarX = fenceLength - blockWidth;
+                const intervalLength = lastPillarX / intervals - blockWidth;
                 return (
                   <Panel
                     key={index}
-                    x={40 + pillarX}
-                    y={-157.5}
-                    width={160}
-                    height={90}
+                    x={blockWidth + pillarX}
+                    y={
+                      -metersToUnits(fenceHeight, blockHeight) * blockHeight +
+                      blockHeight +
+                      7.5
+                    }
+                    width={intervalLength}
+                    height={pillarHeightInCentimeters - 20}
                     color="#353C40"
                   ></Panel>
                 );
@@ -461,11 +484,11 @@ export default function ConfiguratorGard() {
   );
 }
 
-export function metersToColumns(
+export function metersToUnits(
   meters: number,
-  oneColumnLenghtInCentimeters: number
+  oneUnitLenghtInCentimeters: number
 ): number {
-  return Math.floor((meters * 100) / oneColumnLenghtInCentimeters);
+  return Math.floor(Math.round(meters * 100) / oneUnitLenghtInCentimeters);
 }
 
 export function getLastBlockWidth(
