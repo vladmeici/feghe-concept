@@ -275,80 +275,6 @@ export default function ConfiguratorGard() {
             setFenceConfiguration={setFenceConfiguration}
           ></ModelStep>
         )}
-
-        {/* 
-        <Slider
-          className="max-w-md flex-1/2 m-5"
-          maxValue={100}
-          minValue={1}
-          label="Lungime gard (m)"
-          marks={[
-            {
-              value: 1,
-              label: "1",
-            },
-            {
-              value: 10,
-              label: "10",
-            },
-            {
-              value: 25,
-              label: "25",
-            },
-            {
-              value: 50,
-              label: "50",
-            },
-            {
-              value: 75,
-              label: "75",
-            },
-            {
-              value: 100,
-              label: "100",
-            },
-          ]}
-          step={0.1}
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          renderValue={({ children, ...props }) => (
-            <output {...props}>
-              <Tooltip
-                className="text-tiny text-default-500 rounded-md"
-                content="Apase Enter pentru confirmare"
-                placement="left"
-              >
-                <input
-                  aria-label="Temperature value"
-                  className="px-1 py-0.5 w-12 text-right text-small text-default-700 font-medium bg-default-100 outline-hidden transition-colors rounded-small border-medium border-transparent hover:border-primary focus:border-primary"
-                  type="text"
-                  value={fenceLengthInputValue}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setFenceLengthInputValue(v);
-                  }}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !isNaN(Number(fenceLengthInputValue))
-                    ) {
-                      let newFenceLength = Number(fenceLengthInputValue);
-                      newFenceLength =
-                        newFenceLength < 2
-                          ? 2
-                          : newFenceLength > 100
-                          ? 100
-                          : newFenceLength;
-                      setFenceLength(newFenceLength);
-                    }
-                  }}
-                />
-              </Tooltip>
-            </output>
-          )}
-          size="lg"
-          onChange={handleFenceLengthChange}
-          value={fenceLengthInMeters}
-        /> */}
       </div>
       <Divider />
 
@@ -453,9 +379,6 @@ export default function ConfiguratorGard() {
                 pillarHeightInCentimeters =
                   Math.round(pillarHeightInCentimeters * 10) / 10;
 
-                let pillarHeight = fenceHeight - baseHeight;
-                pillarHeight = Math.round(pillarHeight * 10) / 10;
-
                 const fenceLengthInMeters =
                   fenceConfiguration.dimensions.length;
                 const fenceLength = Math.round(fenceLengthInMeters * 100);
@@ -473,7 +396,7 @@ export default function ConfiguratorGard() {
                     }
                     width={intervalLength}
                     height={pillarHeightInCentimeters - 20}
-                    color="#353C40"
+                    color="#8C9190"
                   ></Panel>
                 );
               })}
