@@ -12,6 +12,17 @@ import ModelStep from "./ModelStep";
 import { FenceType, fenceTypes } from "@/data/fenceTypes";
 import { Panel } from "@/components/fence/Panel";
 import DimensionsStep from "./DimensionsStep";
+import PanelsStep from "./PanelsStep";
+import {
+  PanelColor,
+  PanelType,
+  panelTypes,
+  panelUnitHeights,
+  PanelUnitSpace,
+  panelUnitSpaceHeights,
+  panelColors,
+} from "@/data/panelTypes";
+import { generatePathDFromElements, metersToUnits } from "../utils";
 
 interface CapInfo {
   x: number;
@@ -29,16 +40,30 @@ interface FenceDimensions {
   baseHeight: number;
 }
 
+interface PanelsConfiguration {
+  orientation: PanelType;
+  spaceDimension: PanelUnitSpace;
+  panelUnitDimension: number;
+  color: PanelColor;
+}
+
 export interface FenceConfiguration {
   fenceType: FenceType;
   models: FenceModels;
   dimensions: FenceDimensions;
+  panels: PanelsConfiguration;
 }
 
 const defaultFenceConfiguration: FenceConfiguration = {
   fenceType: fenceTypes[0],
   models: { blockModel: blocks[0], capModel: blocks[0] },
   dimensions: { length: 8.4, height: 2, baseHeight: 0.8 },
+  panels: {
+    orientation: panelTypes[0],
+    panelUnitDimension: panelUnitHeights[3],
+    spaceDimension: panelUnitSpaceHeights[0],
+    color: panelColors[0],
+  },
 };
 
 export default function ConfiguratorGard() {
@@ -55,7 +80,7 @@ export default function ConfiguratorGard() {
   const { width: blockWidth, height: blockHeight } = blockModel;
 
   //const extentWidth = fenceLengthInMeters * 100 + 200;
-  const extentWidth = window.innerWidth;
+  const [extentWidth, setExtentWidth] = useState(1000);
   const extentHeight = 400;
 
   const fenceViewBox = `0 0 ${extentWidth} ${400}`;
@@ -71,7 +96,7 @@ export default function ConfiguratorGard() {
 
   const centerFence = useCallback(() => {
     // Ensure both SVG and the group element are available
-    if (!svgRef.current || !fenceGroupRef.current) {
+    if (!svgRef.current || !fenceGroupRef.current || !extentWidth) {
       return;
     }
 
@@ -135,11 +160,12 @@ export default function ConfiguratorGard() {
         svgRef.current.style.visibility = "visible";
       }
     }, 500);
-  }, [fenceConfiguration.dimensions.length]); // eslint-disable-line react-hooks/exhaustive-deps -- fenceLengthInMeters is an indirect dependency via getBBox()
+  }, [extentWidth, fenceConfiguration.dimensions.length]); // eslint-disable-line react-hooks/exhaustive-deps -- fenceLengthInMeters is an indirect dependency via getBBox()
 
   const generateCapsWhenFullBlock = () => {
     const fenceLengthInMeters = fenceConfiguration.dimensions.length;
     const fenceLength = Math.round(fenceLengthInMeters * 100);
+    const fenceHeightInCentimeters = Math.round(fenceHeight * 100);
     const capLength = 23.5;
     const totalCaps = Math.floor(fenceLength / capLength);
     for (let i = 0; i <= totalCaps; i++) {
@@ -154,7 +180,7 @@ export default function ConfiguratorGard() {
         <Block
           key={`cap-block-${capInfo.x}`}
           x={capInfo.x}
-          y={-165}
+          y={-fenceHeightInCentimeters + blockHeight - 5}
           width={capInfo.width}
           height={5}
           patternImage={fenceConfiguration.models.blockModel.modelImage}
@@ -217,8 +243,10 @@ export default function ConfiguratorGard() {
   };
 
   useEffect(() => {
+    // This runs only on the client
+    setExtentWidth(window.innerWidth);
     centerFence();
-  }, [centerFence]); // Dependency on the memoized centerFence
+  }, [centerFence]);
 
   if (fenceConfiguration.fenceType.key === "fullBlocks") {
     generateCapsWhenFullBlock();
@@ -227,223 +255,187 @@ export default function ConfiguratorGard() {
   }
 
   return (
-    <div className="flex flex-col h-screen justify-around">
-      <div className="flex justify-around items-center w-full p-2">
-        <h2>FEGHE Concept - Configurator gard</h2>
+    <div className="h-screen">
+      <div className="flex flex-col ustify-around">
+        <div className="flex justify-around items-center w-full p-2 h-16">
+          <h2>FEGHE Concept - Configurator gard</h2>
+        </div>
+        <div className="flex justify-around items-center w-full p-2 h-16">
+          <FenceConfiguratorStepper
+            currentStep={activeStep}
+            onStepChange={setActiveStep}
+          ></FenceConfiguratorStepper>
+        </div>
       </div>
-      <div className="flex justify-around items-center w-full p-2">
-        <FenceConfiguratorStepper
-          currentStep={activeStep}
-          onStepChange={setActiveStep}
-        ></FenceConfiguratorStepper>
-      </div>
+
       <Divider />
-      <div className="flex justify-around items-center w-full p-2">
-        {activeStep === 0 && (
-          <ModelStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
-        )}
-        {activeStep === 1 && (
-          <DimensionsStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></DimensionsStep>
-        )}
-        {activeStep === 2 && (
-          <ModelStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
-        )}
-        {activeStep === 3 && (
-          <ModelStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
-        )}
-        {activeStep === 4 && (
-          <ModelStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
-        )}
-        {activeStep === 5 && (
-          <ModelStep
-            fenceConfiguration={fenceConfiguration}
-            setFenceConfiguration={setFenceConfiguration}
-          ></ModelStep>
-        )}
-      </div>
-      <Divider />
+      <div className="flex flex-col justify-around">
+        <div className="flex justify-around items-center w-full p-4">
+          {activeStep === 0 && (
+            <ModelStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></ModelStep>
+          )}
+          {activeStep === 1 && (
+            <DimensionsStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></DimensionsStep>
+          )}
+          {activeStep === 2 && (
+            <PanelsStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></PanelsStep>
+          )}
+          {activeStep === 3 && (
+            <ModelStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></ModelStep>
+          )}
+          {activeStep === 4 && (
+            <ModelStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></ModelStep>
+          )}
+          {activeStep === 5 && (
+            <ModelStep
+              fenceConfiguration={fenceConfiguration}
+              setFenceConfiguration={setFenceConfiguration}
+            ></ModelStep>
+          )}
+        </div>
+        <Divider />
 
-      <div className="flex justify-around items-center w-full p-2">
-        <Button
-          variant="outlined"
-          onClick={centerFence}
-          disabled={isCenterButtonDisabled}
-        >
-          Centrare gard
-        </Button>
-      </div>
-      <div className="w-full masked-div">
-        <svg ref={svgRef} viewBox={fenceViewBox} className="invisible">
-          <defs>
-            {/* Define the pattern to be used for filling the blocks. */}
-            <pattern
-              id={`block-pattern-odd`} // Unique ID to reference this pattern.
-              x={20}
-              y={0}
-              width={blockWidth} // The width of a single pattern unit.
-              height={blockHeight} // The height of a single pattern unit.
-              patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
-            >
-              <image
-                href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
+        <div className="flex justify-around items-center w-full p-2">
+          <Button
+            variant="outlined"
+            onClick={centerFence}
+            disabled={isCenterButtonDisabled}
+          >
+            Centrare gard
+          </Button>
+        </div>
+        <div className="w-full masked-div">
+          <svg ref={svgRef} viewBox={fenceViewBox} className="invisible">
+            <defs>
+              {/* Define the pattern to be used for filling the blocks. */}
+              <pattern
+                id={`block-pattern-odd`} // Unique ID to reference this pattern.
+                x={20}
+                y={0}
+                width={blockWidth} // The width of a single pattern unit.
+                height={blockHeight} // The height of a single pattern unit.
+                patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
+              >
+                <image
+                  href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
+                  x={0}
+                  y={0}
+                  width={blockWidth} // Image width should match the pattern unit width.
+                  height={blockHeight} // Image height should match the pattern unit height.
+                  // Preserve aspect ratio and slice to fill the area, cropping if necessary.
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              </pattern>
+              <pattern
+                id={`block-pattern-even`} // Unique ID to reference this pattern.
                 x={0}
                 y={0}
-                width={blockWidth} // Image width should match the pattern unit width.
-                height={blockHeight} // Image height should match the pattern unit height.
-                // Preserve aspect ratio and slice to fill the area, cropping if necessary.
-                preserveAspectRatio="xMidYMid slice"
-              />
-            </pattern>
-            <pattern
-              id={`block-pattern-even`} // Unique ID to reference this pattern.
-              x={0}
-              y={0}
-              width={blockWidth} // The width of a single pattern unit.
-              height={blockHeight} // The height of a single pattern unit.
-              patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
-            >
-              <image
-                href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
+                width={blockWidth} // The width of a single pattern unit.
+                height={blockHeight} // The height of a single pattern unit.
+                patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
+              >
+                <image
+                  href={fenceConfiguration.models.blockModel.modelImage} // The URL of the image.
+                  x={0}
+                  y={0}
+                  width={blockWidth} // Image width should match the pattern unit width.
+                  height={blockHeight} // Image height should match the pattern unit height.
+                  // Preserve aspect ratio and slice to fill the area, cropping if necessary.
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              </pattern>
+              <pattern
+                id={`block-pattern-cap`} // Unique ID to reference this pattern.
                 x={0}
                 y={0}
-                width={blockWidth} // Image width should match the pattern unit width.
-                height={blockHeight} // Image height should match the pattern unit height.
-                // Preserve aspect ratio and slice to fill the area, cropping if necessary.
-                preserveAspectRatio="xMidYMid slice"
+                width={23.5} // The width of a single pattern unit.
+                height={5} // The height of a single pattern unit.
+                patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
+              >
+                <image
+                  href={fenceConfiguration.models.capModel.modelImage} // The URL of the image.
+                  x={0}
+                  y={0}
+                  width={23.5} // Image width should match the pattern unit width.
+                  height={5} // Image height should match the pattern unit height.
+                  // Preserve aspect ratio and slice to fill the area, cropping if necessary.
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              </pattern>
+            </defs>
+
+            <g className="zoom-content" ref={fenceGroupRef}>
+              <Wall fenceConfiguration={fenceConfiguration}></Wall>
+              {fenceConfiguration.fenceType.key === "withPanels" &&
+                pillarsXPositions.map((pillarX, index) => {
+                  let pillarHeight = fenceHeight - baseHeight;
+                  pillarHeight = Math.round(pillarHeight * 10) / 10;
+                  return (
+                    <Pillar
+                      key={index}
+                      rows={metersToUnits(pillarHeight, blockHeight)}
+                      x={pillarX}
+                      fenceConfiguration={fenceConfiguration}
+                    ></Pillar>
+                  );
+                })}
+
+              <path
+                d={capsBlocksD}
+                fill="url(#block-pattern-cap)"
+                stroke="#333"
+                strokeWidth="0.5"
               />
-            </pattern>
-            <pattern
-              id={`block-pattern-cap`} // Unique ID to reference this pattern.
-              x={0}
-              y={0}
-              width={23.5} // The width of a single pattern unit.
-              height={5} // The height of a single pattern unit.
-              patternUnits="userSpaceOnUse" // Pattern units are defined in the coordinate system of the element using the pattern.
-            >
-              <image
-                href={fenceConfiguration.models.capModel.modelImage} // The URL of the image.
-                x={0}
-                y={0}
-                width={23.5} // Image width should match the pattern unit width.
-                height={5} // Image height should match the pattern unit height.
-                // Preserve aspect ratio and slice to fill the area, cropping if necessary.
-                preserveAspectRatio="xMidYMid slice"
-              />
-            </pattern>
-          </defs>
+              {fenceConfiguration.fenceType.key === "withPanels" &&
+                pillarsXPositions.map((pillarX, index) => {
+                  if (index === pillarsXPositions.length - 1) {
+                    return;
+                  }
+                  let pillarHeightInCentimeters =
+                    100 * (fenceHeight - baseHeight);
+                  pillarHeightInCentimeters =
+                    Math.round(pillarHeightInCentimeters * 10) / 10;
 
-          <g className="zoom-content" ref={fenceGroupRef}>
-            <Wall fenceConfiguration={fenceConfiguration}></Wall>
-            {fenceConfiguration.fenceType.key === "withPanels" &&
-              pillarsXPositions.map((pillarX, index) => {
-                let pillarHeight = fenceHeight - baseHeight;
-                pillarHeight = Math.round(pillarHeight * 10) / 10;
-                return (
-                  <Pillar
-                    key={index}
-                    rows={metersToUnits(pillarHeight, blockHeight)}
-                    x={pillarX}
-                    fenceConfiguration={fenceConfiguration}
-                  ></Pillar>
-                );
-              })}
-
-            <path
-              d={capsBlocksD}
-              fill="url(#block-pattern-cap)"
-              stroke="#333"
-              strokeWidth="1"
-            />
-            {fenceConfiguration.fenceType.key === "withPanels" &&
-              pillarsXPositions.map((pillarX, index) => {
-                if (index === pillarsXPositions.length - 1) {
-                  return;
-                }
-                let pillarHeightInCentimeters =
-                  100 * (fenceHeight - baseHeight);
-                pillarHeightInCentimeters =
-                  Math.round(pillarHeightInCentimeters * 10) / 10;
-
-                const fenceLengthInMeters =
-                  fenceConfiguration.dimensions.length;
-                const fenceLength = Math.round(fenceLengthInMeters * 100);
-                const intervals = Math.floor(fenceLengthInMeters / 2);
-                const lastPillarX = fenceLength - blockWidth;
-                const intervalLength = lastPillarX / intervals - blockWidth;
-                return (
-                  <Panel
-                    key={index}
-                    x={blockWidth + pillarX}
-                    y={
-                      -metersToUnits(fenceHeight, blockHeight) * blockHeight +
-                      blockHeight +
-                      7.5
-                    }
-                    width={intervalLength}
-                    height={pillarHeightInCentimeters - 20}
-                    color="#8C9190"
-                  ></Panel>
-                );
-              })}
-          </g>
-        </svg>
+                  const fenceLengthInMeters =
+                    fenceConfiguration.dimensions.length;
+                  const fenceLength = Math.round(fenceLengthInMeters * 100);
+                  const intervals = Math.floor(fenceLengthInMeters / 2);
+                  const lastPillarX = fenceLength - blockWidth;
+                  const intervalLength = lastPillarX / intervals - blockWidth;
+                  return (
+                    <Panel
+                      key={index}
+                      x={blockWidth + pillarX}
+                      y={
+                        -metersToUnits(fenceHeight, blockHeight) * blockHeight +
+                        blockHeight +
+                        7.5
+                      }
+                      width={intervalLength}
+                      height={pillarHeightInCentimeters - 20}
+                      fenceConfiguration={fenceConfiguration}
+                    ></Panel>
+                  );
+                })}
+            </g>
+          </svg>
+        </div>
       </div>
     </div>
   );
-}
-
-export function metersToUnits(
-  meters: number,
-  oneUnitLenghtInCentimeters: number
-): number {
-  return Math.floor(Math.round(meters * 100) / oneUnitLenghtInCentimeters);
-}
-
-export function getLastBlockWidth(
-  meters: number,
-  oneColumnLenghtInCentimeters: number
-) {
-  return Math.round((meters * 100) % oneColumnLenghtInCentimeters);
-}
-
-export function generatePathDFromElements(
-  blockElements: React.JSX.Element[],
-  rTop: number = 1,
-  rBottom: number = 1
-): string {
-  return blockElements
-    .map((el) => {
-      const { x, y, width, height } = el.props;
-
-      return `
-        M${x + rTop},${y}
-        h${width - 2 * rTop}
-        a${rTop},${rTop} 0 0 1 ${rTop},${rTop}
-        v${height - rTop - rBottom}
-        a${rBottom},${rBottom} 0 0 1 -${rBottom},${rBottom}
-        h-${width - 2 * rBottom}
-        a${rBottom},${rBottom} 0 0 1 -${rBottom},-${rBottom}
-        v-${height - rTop - rBottom}
-        a${rTop},${rTop} 0 0 1 ${rTop},-${rTop}
-        Z
-      `
-        .trim()
-        .replace(/\s+/g, " ");
-    })
-    .join(" ");
 }

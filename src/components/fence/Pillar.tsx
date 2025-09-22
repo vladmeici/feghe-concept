@@ -1,9 +1,6 @@
-import {
-  FenceConfiguration,
-  generatePathDFromElements,
-  metersToUnits,
-} from "@/app/configurator/page";
+import { FenceConfiguration } from "@/app/configurator/page";
 import { Block } from "./Block";
+import { generatePathDFromElements, metersToUnits } from "@/app/utils";
 
 interface PillarProps {
   rows: number;
@@ -22,9 +19,6 @@ export const Pillar = ({ rows, x, fenceConfiguration }: PillarProps) => {
 
   const startingX = x;
   const startingY = -blockHeight * metersToUnits(baseHeight, blockHeight);
-
-  console.log("rows", rows);
-  console.log("startingY", startingY);
 
   const capsPillarBlocks = [
     <Block
@@ -105,7 +99,7 @@ export const Pillar = ({ rows, x, fenceConfiguration }: PillarProps) => {
         d={upperBlockD}
         fill="url(#block-pattern-cap)"
         stroke="#333"
-        strokeWidth="1"
+        strokeWidth="0.5"
       />
     </>
   );

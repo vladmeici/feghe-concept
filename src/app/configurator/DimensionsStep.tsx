@@ -1,7 +1,5 @@
 import {
   Box,
-  Card,
-  CardContent,
   Grid,
   Input,
   Slider,
@@ -65,41 +63,42 @@ function DimensionControl({
   };
 
   return (
-    <Card className="w-2/5" variant="outlined">
-      <CardContent>
-        <Typography gutterBottom sx={{ color: "text.secondary", fontSize: 14 }}>
-          {label} - multiplu de {step}
-        </Typography>
-        <Grid container spacing={2} sx={{ alignItems: "center" }}>
-          <Grid size="grow">
-            <Slider
-              step={step}
-              min={min}
-              max={max}
-              value={value}
-              valueLabelDisplay="auto"
-              onChange={handleSliderChange}
-            />
-          </Grid>
-          <Grid>
-            <Input
-              value={inputValue}
-              size="small"
-              onChange={handleInputChange}
-              onBlur={commitChange}
-              onKeyDown={(e) => e.key === "Enter" && commitChange()}
-              inputProps={{
-                step,
-                min,
-                max,
-                type: "number",
-                "aria-labelledby": "input-slider",
-              }}
-            />
-          </Grid>
+    <Box
+      className="w-2/5 border border-color p-4"
+      sx={{ border: "1px solid rgba(0, 0, 0, 0.12)", borderRadius: "4px" }}
+    >
+      <Typography gutterBottom sx={{ color: "text.secondary", fontSize: 14 }}>
+        {label} - multiplu de {step}
+      </Typography>
+      <Grid container spacing={2} sx={{ alignItems: "center" }}>
+        <Grid size="grow">
+          <Slider
+            step={step}
+            min={min}
+            max={max}
+            value={value}
+            valueLabelDisplay="auto"
+            onChange={handleSliderChange}
+          />
         </Grid>
-      </CardContent>
-    </Card>
+        <Grid>
+          <Input
+            value={inputValue}
+            size="small"
+            onChange={handleInputChange}
+            onBlur={commitChange}
+            onKeyDown={(e) => e.key === "Enter" && commitChange()}
+            inputProps={{
+              step,
+              min,
+              max,
+              type: "number",
+              "aria-labelledby": "input-slider",
+            }}
+          />
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 

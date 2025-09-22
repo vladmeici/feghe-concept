@@ -1,10 +1,7 @@
 import React, { useMemo } from "react";
 import { Block } from "./Block";
-import {
-  FenceConfiguration,
-  generatePathDFromElements,
-  metersToUnits,
-} from "@/app/configurator/page";
+import { FenceConfiguration } from "@/app/configurator/page";
+import { generatePathDFromElements, metersToUnits } from "@/app/utils";
 
 interface WallProps {
   fenceConfiguration: FenceConfiguration;

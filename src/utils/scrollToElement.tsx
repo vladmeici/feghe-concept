@@ -6,10 +6,8 @@ export const scrollToElement = () => {
       anchor.href != "#" &&
       !anchor.hasAttribute("data-bs-toggle")
     ) {
-      //   console.log(anchor.href);
       anchor.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("clicle");
         const id = anchor.href.split("#")[1];
         const element = document.getElementById(id);
         if (element) {

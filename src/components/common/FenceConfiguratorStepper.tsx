@@ -10,9 +10,9 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 const steps = [
   "Model",
   "Dimensiuni",
+  "Panouri",
   "Porti pietonale",
   "Porti auto",
-  "Panouri",
   "Oferta",
 ];
 
